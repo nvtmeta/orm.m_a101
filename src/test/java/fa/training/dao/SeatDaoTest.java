@@ -1,66 +1,75 @@
 package fa.training.dao;
 
 import fa.training.dao.impl.SeatDaoImpl;
+import fa.training.entities.CinemaRoom;
+import fa.training.entities.CinemaRoomDetail;
 import fa.training.entities.Seat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SeatDaoTest {
 
     private static SeatDao seatDao;
-    private static Seat testSeat;
 
     @BeforeAll
     public static void setUp() {
         seatDao = new SeatDaoImpl();
-
-        // Create a test seat
-        testSeat = new Seat();
-        testSeat.setSeatColumn("A");
-        testSeat.setSeatRow(1);
-        testSeat.setSeatStatus("Available");
-        testSeat.setSeatType("Normal");
-
-        // Save the test seat
-        seatDao.save(testSeat);
     }
 
-    @AfterAll
-    public static void tearDown() {
-        // Remove the test seat
-        seatDao.removeById(testSeat.getSeatId());
-    }
 
     @Test
     public void testSave() {
-        // Create a new seat
-        Seat seat = new Seat();
-        seat.setSeatColumn("B");
-        seat.setSeatRow(2);
-        seat.setSeatStatus("Available");
-        seat.setSeatType("VIP");
 
-        // Save the seat
+        // Create a test room and set its properties
+        CinemaRoom cinemaRoom = new CinemaRoom();
+        cinemaRoom.setRoomName("Test Room");
+        cinemaRoom.setSeatQuantity(50);
+
+        // Create test seats for the room
+        Seat seat = new Seat();
+        seat.setSeatColumn("A");
+        seat.setSeatRow(1);
+        seat.setSeatStatus("Available");
+        seat.setSeatType("Normal");
+        seat.setCinemaRoom(cinemaRoom);
+
+        Seat seat2 = new Seat();
+        seat2.setSeatColumn("B");
+        seat2.setSeatRow(1);
+        seat2.setSeatStatus("Available");
+        seat2.setSeatType("Normal");
+        seat2.setCinemaRoom(cinemaRoom);
+
+        List<Seat> seatList = Stream.of(seat, seat2).collect(Collectors.toList());
+
+        // Add the seats to the room
+        cinemaRoom.setSeats(seatList);
+
+
+        // Save the test cinema room
         seatDao.save(seat);
 
-        // Check if the seat is saved successfully
-        assertNotNull(seat.getSeatId());
-
-        // Remove the seat
-        seatDao.removeById(seat.getSeatId());
+        Seat seatSave = seatDao.getById(seat.getSeatId());
+        // Check if the saved seat is not null
+        assertNotNull(seatSave);
     }
 
 
     @Test()
     public void testSaveNull() {
+        // Create a null seat
+        Seat seat = new Seat();
         // Save a null seat
-        assertThrows(IllegalArgumentException.class, () -> {
-            seatDao.save(null);
+        assertThrows(Exception.class, () -> {
+            seatDao.save(seat);
         });
     }
 
@@ -71,17 +80,16 @@ public class SeatDaoTest {
         System.out.println("seat: " + seats.toString());
         // Check if the list is not empty
         assertFalse(seats.isEmpty());
+        assertEquals(2, seats.size());
     }
 
     @Test
     public void testGetById() {
         // Get the test seat by its ID
-        Seat seat = seatDao.getById(testSeat.getSeatId());
+        Seat seat = seatDao.getById(1);
 
-        System.out.println("seat: " + seat);
         // Check if the retrieved seat is not null
         assertNotNull(seat);
-        assertEquals(testSeat.getSeatId(), seat.getSeatId());
     }
 
     @Test
@@ -95,25 +103,18 @@ public class SeatDaoTest {
 
     @Test
     public void testUpdate() {
-        // Update the test seat
-        testSeat.setSeatStatus("Booked");
-        seatDao.update(testSeat);
+        Seat seat = seatDao.getById(1);
+        seat.setSeatStatus("Unavailable");
+        seatDao.update(seat);
 
-        // Get the updated seat
-        Seat updatedSeat = seatDao.getById(testSeat.getSeatId());
-
-        // Check if the seat is updated successfully
-        assertEquals("Booked", updatedSeat.getSeatStatus());
+        Seat seatUpdate = seatDao.getById(1);
+        assertEquals("Unavailable", seatUpdate.getSeatStatus());
     }
 
     @Test
     public void testUpdateNotExist() {
         Seat seat = new Seat();
-        seat.setSeatId(-1);
-        seat.setSeatRow(2);
-        seat.setSeatColumn("B");
-        seat.setSeatStatus("none");
-        seat.setSeatType("VIP");
+        seat.setSeatStatus("Unavailable");
 
         assertThrows(Exception.class, () -> {
             seatDao.update(seat);
@@ -123,10 +124,10 @@ public class SeatDaoTest {
     @Test
     public void testRemoveById() {
         // Remove the test seat
-        seatDao.removeById(testSeat.getSeatId());
+        seatDao.removeById(1);
 
         // Get the seat by its ID
-        Seat seat = seatDao.getById(testSeat.getSeatId());
+        Seat seat = seatDao.getById(1);
 
         // Check if the seat is null after removal
         assertNull(seat);

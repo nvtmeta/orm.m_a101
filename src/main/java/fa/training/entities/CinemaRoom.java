@@ -28,7 +28,7 @@ public class CinemaRoom {
     @Column(name = "SEAT_QUANTITY", nullable = false)
     private Integer seatQuantity;
 
-    @OneToMany(mappedBy = "cinemaRoom", cascade = CascadeType.MERGE)
+    @OneToMany(mappedBy = "cinemaRoom", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Seat> seats;
 

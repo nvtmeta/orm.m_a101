@@ -28,7 +28,7 @@ public class Seat {
     @Column(name = "SEAT_ROW", nullable = false)
     private Integer seatRow;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "CINEMA_ROOM_ID")
     private CinemaRoom cinemaRoom;
 

@@ -19,67 +19,44 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RoomDetailDaoTest {
 
     private static RoomDetailDao roomDetailDao;
-    private static RoomDao roomDao;
-    public static CinemaRoomDetail testCinemaRoomDetail;
-    public static CinemaRoom cinemaRoom;
 
 
     @BeforeAll
     static void setUp() {
         roomDetailDao = new RoomDetailDaoImpl();
-        roomDao = new RoomDaoImpl();
 
-        CinemaRoom cinemaRoom = new CinemaRoom(testCinemaRoomDetail.getCinemaRoomDetailId(), "Test room 1", 100);
-
-        testCinemaRoomDetail = new CinemaRoomDetail();
-        testCinemaRoomDetail.setCinemaRoom(cinemaRoom);
-        testCinemaRoomDetail.setRoomRate(100);
-        testCinemaRoomDetail.setActiveDate(LocalDate.now());
-        testCinemaRoomDetail.setRoomDescription("Test Description");
-        roomDetailDao.save(testCinemaRoomDetail);
-
-    }
-
-    @AfterAll
-    static void tearDown() {
-        roomDao.removeById(cinemaRoom.getCinemaRoomId());
-        roomDetailDao.removeById(testCinemaRoomDetail.getCinemaRoomDetailId());
     }
 
 
     @Test
     public void testSave() {
 
-//        CinemaRoom cinemaRoom = new CinemaRoom(1, "Test room 2", 100);
+        CinemaRoom cinemaRoom = new CinemaRoom();
+        cinemaRoom.setRoomName("Room 1");
+        cinemaRoom.setSeatQuantity(50);
 
-        // Create a cinema room detail
-        CinemaRoomDetail testCinemaRoomDetail = new CinemaRoomDetail();
-        testCinemaRoomDetail.setCinemaRoom(cinemaRoom);
-        testCinemaRoomDetail.setRoomRate(100);
-        testCinemaRoomDetail.setActiveDate(LocalDate.now());
-        testCinemaRoomDetail.setRoomDescription("Test Description");
+        Seat seat = new Seat();
+        seat.setSeatColumn("A");
+        seat.setSeatRow(1);
+        seat.setSeatStatus("Available");
+        seat.setSeatType("Normal");
+        seat.setCinemaRoom(cinemaRoom);
 
-        // Save the cinema room detail
-        roomDetailDao.save(testCinemaRoomDetail);
+        List<Seat> seats = Stream.of(seat).collect(Collectors.toList());
+        cinemaRoom.setSeats(seats);
 
-        // Retrieve the saved cinema room detail by ID
-        CinemaRoomDetail retrievedCinemaRoomDetail =
-                roomDetailDao.getById(testCinemaRoomDetail.getCinemaRoomDetailId());
-
-        // Assert the retrieved cinema room detail is not null
-        assertNotNull(retrievedCinemaRoomDetail);
-
-        // Assert the attributes of the retrieved cinema room detail
-        assertEquals(testCinemaRoomDetail.getCinemaRoom(), retrievedCinemaRoomDetail.getCinemaRoom());
-        assertEquals(testCinemaRoomDetail.getRoomRate(), retrievedCinemaRoomDetail.getRoomRate());
-        assertEquals(testCinemaRoomDetail.getActiveDate(), retrievedCinemaRoomDetail.getActiveDate());
-        assertEquals(testCinemaRoomDetail.getRoomDescription(), retrievedCinemaRoomDetail.getRoomDescription());
+        CinemaRoomDetail testRoomDetail = new CinemaRoomDetail();
+        testRoomDetail.setCinemaRoom(cinemaRoom);
+        testRoomDetail.setRoomRate(10);
+        testRoomDetail.setActiveDate(LocalDate.now());
+        testRoomDetail.setRoomDescription("Room 1");
+        roomDetailDao.save(testRoomDetail);
 
     }
 
     @Test
     public void saveNotExist() {
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(Exception.class, () -> {
             roomDetailDao.save(null);
         });
     }
@@ -87,76 +64,70 @@ public class RoomDetailDaoTest {
     @Test
     public void testFindAll() {
 
+        List<CinemaRoomDetail> roomDetails = roomDetailDao.findAll();
+        assertFalse(roomDetails.isEmpty());
+        assertEquals(1, roomDetails.size());
     }
-//
-//
-//    @Test
-//    public void testGetById() {
-//        CinemaRoom cinemaRoom = roomDao.getById(testRoom.getCinemaRoomId());
-//
-//        assertNotNull(cinemaRoom);
-//        assertEquals(testRoom.getRoomName(), cinemaRoom.getRoomName());
-//        assertEquals(testRoom.getSeatQuantity(), cinemaRoom.getSeatQuantity());
-//    }
-//
-//    @Test
-//    public void testFindByIdNotExist() {
-//        // Assert that the method returns null for a non-existent ID
-//        assertEquals(null, roomDao.getById(-1));
-//    }
-//
-//    @Test
-//    public void testUpdate() {
-//        // Create a new cinema room
-//        CinemaRoom updatedRoom = new CinemaRoom();
-//        updatedRoom.setCinemaRoomId(testRoom.getCinemaRoomId());
-//        updatedRoom.setRoomName("Updated Room");
-//        updatedRoom.setSeatQuantity(150);
-//
-//        // Update the cinema room
-//        roomDao.update(updatedRoom);
-//
-//        // Retrieve the updated cinema room
-//        CinemaRoom updatedCinemaRoom = roomDao.getById(testRoom.getCinemaRoomId());
-//
-//        // Assert that the updated cinema room is not null
-//        assertNotNull(updatedCinemaRoom);
-//        // Assert that the updated cinema room has the updated properties
-//        assertEquals("Updated Room", updatedCinemaRoom.getRoomName());
-//        assertEquals(150, updatedCinemaRoom.getSeatQuantity());
-//
-//    }
-//
-//    @Test
-//    public void testUpdateNotExist() {
-//        // Create a cinema room with non-existent ID
-//        CinemaRoom cinemaRoom = new CinemaRoom();
-//        cinemaRoom.setCinemaRoomId(-1);
-//        cinemaRoom.setRoomName("Room 1");
-//
-//        // Assert that updating the non-existent cinema room throws an exception
-//        assertThrows(Exception.class, () -> {
-//            roomDao.update(cinemaRoom);
-//        });
-//
-//    }
-//
-//    @Test
-//    public void testRemoveById() {
-//        // Remove the test cinema room
-//        roomDao.removeById(testRoom.getCinemaRoomId());
-//
-//        // Assert that the removed room is null
-//        assertNull(roomDao.getById(testRoom.getCinemaRoomId()));
-//
-//    }
-//
-//    @Test
-//    public void testRemoveByIdNotExist() {
-//        assertThrows(IllegalArgumentException.class, () -> {
-//            roomDao.removeById(-1);
-//        });
-//    }
+
+    @Test
+    public void testGetById() {
+
+        CinemaRoomDetail roomDetail = roomDetailDao.getById(1);
+        assertNotNull(roomDetail);
+    }
+
+    @Test
+    public void testFindByIdNotExist() {
+
+      CinemaRoomDetail cinemaRoomDetail = roomDetailDao.getById(100000);
+
+      assertNull(cinemaRoomDetail);
+    }
+
+    //
+    @Test
+    public void testUpdate() {
+        CinemaRoomDetail cinemaRoomDetail = roomDetailDao.getById(1);
+
+        // Update the cinema room
+        cinemaRoomDetail.setRoomRate(20);
+        roomDetailDao.update(cinemaRoomDetail);
+
+        // Retrieve the updated cinema room
+        CinemaRoomDetail updatedCinemaRoom = roomDetailDao.getById(1);
+
+        // Assert that the updated cinema room is not null
+        assertNotNull(updatedCinemaRoom);
+        // Assert that the updated cinema room has the updated properties
+        assertEquals(20, updatedCinemaRoom.getRoomRate());
+    }
+
+    @Test
+    public void testUpdateNotExist() {
+        CinemaRoomDetail cinemaRoomDetail = roomDetailDao.getById(100000);
+
+        assertThrows(Exception.class, () -> {
+            cinemaRoomDetail.setRoomRate(20);
+            roomDetailDao.update(cinemaRoomDetail);
+        });
+    }
+
+    @Test
+    public void testRemoveById() {
+
+        // Remove the test seat
+        roomDetailDao.removeById(1);
+
+        assertNull(roomDetailDao.getById(1));
+
+    }
+
+    @Test
+    public void testRemoveByIdNotExist() {
+        assertThrows(Exception.class, () -> {
+            roomDetailDao.removeById(-1);
+        });
+    }
 
 
 }

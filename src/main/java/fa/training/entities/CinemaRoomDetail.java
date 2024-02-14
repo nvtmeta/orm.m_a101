@@ -22,7 +22,7 @@ public class CinemaRoomDetail {
     @Column(name = "CINEMA_ROOM_DETAIL_ID")
     private Integer cinemaRoomDetailId;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "CINEMA_ROOM_ID")
     private CinemaRoom cinemaRoom;
 
